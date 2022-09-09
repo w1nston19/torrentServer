@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 public interface Peer {
-
     int BUFFER_SIZE = 1024;
 
     String PATH_TO_FILE_FORMAT = "torrent/src/data/%s";

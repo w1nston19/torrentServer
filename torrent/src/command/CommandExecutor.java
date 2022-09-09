@@ -8,7 +8,7 @@ public class CommandExecutor {
     private final static String REGISTER_COMMAND = "register";
     private final static String UNREGISTER_COMMAND = "unregister";
 
-    private final static String FETCH_MESSAGE = "fetch";
+    private final static String FETCH_COMMAND = "fetch";
 
     private final Storage storage;
 
@@ -22,6 +22,7 @@ public class CommandExecutor {
             case LIST_COMMAND -> list();
             case REGISTER_COMMAND -> register(command);
             case UNREGISTER_COMMAND -> unregister(command);
+            case FETCH_COMMAND -> fetch();
             default -> "The system does not support the command <%s>%n".formatted(command.command());
         };
     }
@@ -34,7 +35,12 @@ public class CommandExecutor {
         return storage.list();
     }
 
+    private String fetch(){
+        return storage.server_info();
+    }
     private String register(Command command) {
+
+        command.arguments().removeIf(it -> it.equals("") || it.equals(" "));
 
         if (command.arguments().size() <= 1) {
             return "You need to specify files to register and username\n";
@@ -42,6 +48,7 @@ public class CommandExecutor {
 
         var address = command.arguments().get(command.arguments().size() - 1);
         command.arguments().remove(address);
+
         return storage.register(command.userClient(),
                 command.arguments().stream().map(Path::of).toList(), address);
 

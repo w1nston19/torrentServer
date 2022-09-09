@@ -1,5 +1,7 @@
 package server;
 
+import exceptions.UndetectableLocalIPException;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -20,7 +22,7 @@ public interface Server {
 
     void stopServer(Selector selector);
 
-    InetAddress getIP();
+    InetAddress getIP() throws UndetectableLocalIPException;
 
     void establish(ServerSocketChannel serverSocketChannel, InetAddress address, int port) throws IOException;
 }

@@ -1,5 +1,7 @@
 package server;
 
+import exceptions.UndetectableLocalIPException;
+
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -59,14 +61,12 @@ public class AbstractServer implements Server {
     }
 
     @Override
-    public InetAddress getIP() {
+    public InetAddress getIP() throws UndetectableLocalIPException {
         try (final DatagramSocket datagramSocket = new DatagramSocket()) {
             datagramSocket.connect(InetAddress.getByName("8.8.8.8"), 12345);
             return InetAddress.getByName(datagramSocket.getLocalAddress().getHostAddress());
         } catch (Exception e) {
-            //ToDo
-            e.printStackTrace();
-            return null;
+            throw new UndetectableLocalIPException(e.getMessage(), e);
         }
     }
 

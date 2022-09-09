@@ -1,5 +1,7 @@
 package peer.downloadClient;
 
+import exceptions.NonExistentFileException;
+import logger.Loggable;
 import peer.AbstractPeer;
 
 import java.io.BufferedReader;
@@ -15,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultDownloadClient extends AbstractPeer implements DownloadClient {
+public class DefaultDownloadClient extends AbstractPeer implements DownloadClient, Loggable {
     private final Path PATH_TO_FILE;
 
     public DefaultDownloadClient(Path pathToFile) {
@@ -51,8 +53,11 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
 
         try {
             Files.createFile(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    "creating a destination file ",
+                    this.getClass()
+            );
         }
 
         //might be magic
@@ -60,21 +65,31 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         int port = Integer.parseInt(ipAddress.getValue());
 
         try (SocketChannel channel = SocketChannel.open()) {
-            System.out.println("Attempt to connect to " + ip + ":" + port);
             channel.connect(new InetSocketAddress(ip, port));
-            System.out.println("Connected");
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
             sendMessage(buffer, channel, from);
-
+            if(!channel.isConnected()){
+                throw new NonExistentFileException
+                        ("the path provided is not valid/the file on this path doesn't exist");
+            }
             try (var os = new FileOutputStream(to)) {
                 FileChannel fileChannel = os.getChannel();
                 fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
             }
+
+            if(Files.size(file) == 0){
+                Files.delete(file);
+                throw new NonExistentFileException
+                        ("the file doesn't exist or the writing was not success");
+            }
             channel.close();
             System.out.println("I finished");
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            handleException(e,
+                    "downloading the file ",
+                    this.getClass()
+            );
         }
     }
 

@@ -2,13 +2,15 @@ package server;
 
 import command.Command;
 import command.CommandExecutor;
+import exceptions.UndetectableLocalIPException;
+import logger.Loggable;
 
 import java.io.IOException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class
-MainServer extends AbstractServer implements Server {
+MainServer extends AbstractServer implements Server, Loggable {
     private static final CommandExecutor executor;
 
     static {
@@ -18,6 +20,7 @@ MainServer extends AbstractServer implements Server {
     public void start() {
 
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
+
 
             establish(serverSocketChannel, getIP(), DEFAULT_PORT);
 
@@ -56,8 +59,14 @@ MainServer extends AbstractServer implements Server {
                 }
 
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    " the server",
+                    this.getClass());
+        } catch (UndetectableLocalIPException ipException) {
+            handleException(ipException,
+                    "finding the ip the server should be bind to",
+                    this.getClass());
         }
     }
 }

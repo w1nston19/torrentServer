@@ -1,5 +1,7 @@
 package peer;
 
+import exceptions.FetchingThreadException;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
@@ -8,7 +10,7 @@ import java.nio.file.Path;
 public class FetchingThread extends AbstractPeer implements Runnable {
     private final Path log;
 
-    private final static String SERVER_MESSAGE = "list-files";
+    private final static String SERVER_MESSAGE = "fetch";
 
     private final SocketChannel socketChannel;
 
@@ -34,7 +36,7 @@ public class FetchingThread extends AbstractPeer implements Runnable {
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new FetchingThreadException(e.getMessage(), e);
         }
     }
 

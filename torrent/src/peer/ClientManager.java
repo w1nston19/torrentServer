@@ -10,7 +10,7 @@ public class ClientManager {
             client.start(InetAddress.getByName("192.168.0.104"), 6584);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
     }

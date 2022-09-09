@@ -1,5 +1,7 @@
 package peer.downloadServer;
 
+import exceptions.NonExistentFileException;
+import logger.Loggable;
 import server.AbstractServer;
 import server.Server;
 
@@ -12,7 +14,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class DownloadServer extends AbstractServer implements Server, Runnable {
+public class DownloadServer extends AbstractServer implements Server, Runnable, Loggable {
 
     InetSocketAddress socketAddress;
 
@@ -57,8 +59,11 @@ public class DownloadServer extends AbstractServer implements Server, Runnable {
                 it.remove();
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    "the download server ",
+                    this.getClass()
+            );
         }
 
     }
@@ -68,25 +73,10 @@ public class DownloadServer extends AbstractServer implements Server, Runnable {
     }
 
     public void printFile(String pathStr, SocketChannel channel) throws IOException {
-        //ToDo :: do custom exception
-        String optionalMessage = null;
         Path filePath = Path.of(pathStr);
 
-        System.out.println(filePath);
         if (!Files.exists(filePath)) {
-            optionalMessage = "The path does not exist";
-        }
-
-        byteBuffer.clear();
-        if (optionalMessage != null) {
-            System.out.println("There was an error i guess");
-            byteBuffer.put(optionalMessage.getBytes());
-            try {
-                byteBuffer.flip();
-                channel.write(byteBuffer);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            channel.close();
             return;
         }
 
@@ -99,8 +89,13 @@ public class DownloadServer extends AbstractServer implements Server, Runnable {
                 position += fileChannel.transferTo(position, fileChannel.size(), channel);
             }
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ioException) {
+            throw new RuntimeException(ioException);
+            /*
+            handleException(ioException,
+                    "extracting the file",
+                    this.getClass()
+            );*/
         }
 
         channel.close();

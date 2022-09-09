@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
-public class AbstractPeer implements Peer {
+public abstract class AbstractPeer implements Peer {
     public void sendMessage(ByteBuffer buffer, SocketChannel socketChannel, String message) throws IOException {
         buffer.clear();
 

@@ -8,6 +8,7 @@ import java.util.Map;
 
 public class Storage {
 
+    private static final String EMPTY_STORAGE = "No items currently available";
     private final Map<String, List<Path>> activeUsers;
     private final Map<String, String> userAddresses;
 
@@ -16,7 +17,19 @@ public class Storage {
         this.userAddresses = new HashMap<>();
     }
 
-    public String list() {
+    public String list(){
+        StringBuilder builder = new StringBuilder();
+
+        for (String userClient : activeUsers.keySet()) {
+            for (Path path : activeUsers.get(userClient)) {
+                builder.append(userAddresses.get(userClient)).append(" : ");
+                builder.append(path).append("\n");
+            }
+        }
+
+        return builder.isEmpty() ? EMPTY_STORAGE : builder.toString();
+    }
+    public String server_info() {
         StringBuilder builder = new StringBuilder();
 
         for (String userClient : activeUsers.keySet()) {
@@ -26,7 +39,7 @@ public class Storage {
             }
         }
 
-        return builder.isEmpty() ? "No items currently available" : builder.toString();
+        return builder.isEmpty() ? EMPTY_STORAGE : builder.toString();
     }
 
     public String register(String username, List<Path> paths, String address) {

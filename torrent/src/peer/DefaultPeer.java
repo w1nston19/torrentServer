@@ -1,5 +1,7 @@
 package peer;
 
+import exceptions.FetchingThreadException;
+import logger.Loggable;
 import peer.downloadClient.DefaultDownloadClient;
 import peer.downloadClient.DownloadClient;
 import peer.downloadServer.DownloadServer;
@@ -14,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Scanner;
 
-public class DefaultPeer extends AbstractPeer implements Peer {
+public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
     private int counter = 0;
 
@@ -89,8 +91,15 @@ public class DefaultPeer extends AbstractPeer implements Peer {
                 System.out.println(getMessage(buffer, socketChannel));
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FetchingThreadException fetchingThreadException) {
+            handleException(fetchingThreadException,
+                    "fetching data from the server",
+                    FetchingThread.class);
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    "the connection to the main ",
+                    this.getClass()
+            );
         }
     }
 
@@ -107,5 +116,4 @@ public class DefaultPeer extends AbstractPeer implements Peer {
         thread.start();
         return fetchingThread;
     }
-
 }
