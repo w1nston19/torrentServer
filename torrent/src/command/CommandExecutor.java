@@ -35,9 +35,10 @@ public class CommandExecutor {
         return storage.list();
     }
 
-    private String fetch(){
+    private String fetch() {
         return storage.server_info();
     }
+
     private String register(Command command) {
 
         command.arguments().removeIf(it -> it.equals("") || it.equals(" "));

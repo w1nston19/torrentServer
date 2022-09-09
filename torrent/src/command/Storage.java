@@ -17,7 +17,7 @@ public class Storage {
         this.userAddresses = new HashMap<>();
     }
 
-    public String list(){
+    public String list() {
         StringBuilder builder = new StringBuilder();
 
         for (String userClient : activeUsers.keySet()) {
@@ -29,6 +29,7 @@ public class Storage {
 
         return builder.isEmpty() ? EMPTY_STORAGE : builder.toString();
     }
+
     public String server_info() {
         StringBuilder builder = new StringBuilder();
 

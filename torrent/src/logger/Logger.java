@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 
 public interface Logger {
 
-    void log(LocalDateTime timestamp,Class<?> clazz,  String message);
+    void log(LocalDateTime timestamp, Class<?> clazz, String message);
+
     /**
      * Gets the Logger's options.
      *

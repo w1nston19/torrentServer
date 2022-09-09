@@ -41,7 +41,7 @@ public class DefaultLogger implements Logger {
     }
 
     @Override
-    public void log(LocalDateTime timestamp,Class<?> clazz,  String message) {
+    public void log(LocalDateTime timestamp, Class<?> clazz, String message) {
         validateNotNull(timestamp);
         validateNotNull(message);
         validateNotEmpty(message);

@@ -1,6 +1,5 @@
 package peer.downloadServer;
 
-import exceptions.NonExistentFileException;
 import logger.Loggable;
 import server.AbstractServer;
 import server.Server;

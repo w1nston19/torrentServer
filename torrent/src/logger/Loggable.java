@@ -9,19 +9,19 @@ public interface Loggable {
             "There was a problem with %s Please contact admin and provide the information in <%s>";
 
 
-    default void handleException(Exception e, String message, Class<?> clazz){
+    default void handleException(Exception e, String message, Class<?> clazz) {
         System.out.println(ERROR.formatted(message,
                 logger.getCurrentFilePath().toString()));
-        log(clazz,e.getMessage());
+        log(clazz, e.getMessage());
     }
 
-    default void handleException(RuntimeException e, String message, Class<?> clazz){
+    default void handleException(RuntimeException e, String message, Class<?> clazz) {
         System.out.println(ERROR.formatted(message,
                 logger.getCurrentFilePath().toString()));
-        log(clazz,e.getMessage());
+        log(clazz, e.getMessage());
     }
 
-    private void log(Class<?> clazz, String mssg){
+    private void log(Class<?> clazz, String mssg) {
         logger.log(LocalDateTime.now(),
                 clazz,
                 mssg);

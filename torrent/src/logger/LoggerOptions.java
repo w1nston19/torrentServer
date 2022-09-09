@@ -10,6 +10,7 @@ public class LoggerOptions {
     public LoggerOptions(String directory) {
         this.directory = directory;
     }
+
     public String getDirectory() {
         return directory;
     }

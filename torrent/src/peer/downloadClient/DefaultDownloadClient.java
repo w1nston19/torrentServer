@@ -68,7 +68,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
             channel.connect(new InetSocketAddress(ip, port));
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
             sendMessage(buffer, channel, from);
-            if(!channel.isConnected()){
+            if (!channel.isConnected()) {
                 throw new NonExistentFileException
                         ("the path provided is not valid/the file on this path doesn't exist");
             }
@@ -77,7 +77,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
                 fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
             }
 
-            if(Files.size(file) == 0){
+            if (Files.size(file) == 0) {
                 Files.delete(file);
                 throw new NonExistentFileException
                         ("the file doesn't exist or the writing was not success");
