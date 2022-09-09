@@ -22,7 +22,11 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
     private final InetSocketAddress inetSocketAddress;
 
+    private String name = null;
+
     private Path PATH_TO_FILE;
+
+    private final String NAME_MESSAGE = "name:";
 
     public DefaultPeer() {
         InetAddress ip;
@@ -78,17 +82,33 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
                     fetchingThread.stop();
                     socketChannel.close();
                     ds.stop();
+                    System.out.println("Disconnecting...");
                     break;
                 }
 
                 if (inputStr.startsWith(DOWNLOAD_STR)) {
-                    client.download(inputStr);
+                    String path = client.download(inputStr);
+
+                    if(name == null){
+                        System.out.println("You haven't specified your username.");
+                        System.out.print(NAME_MESSAGE);
+                        name = input.nextLine();
+                    }
+                    String tmp = REGISTER_FORMAT.formatted(name, path,inetSocketAddress);
+                    System.out.println(tmp);
+                    sendMessage(buffer,socketChannel, tmp);
+                    System.out.println(getMessage(buffer, socketChannel));
                     continue;
                 }
 
                 inputStr = inputStr + ' ' + inetSocketAddress;
                 sendMessage(buffer, socketChannel, inputStr);
-                System.out.println(getMessage(buffer, socketChannel));
+                String output = getMessage(buffer, socketChannel);
+                if(output.startsWith(NAME_MESSAGE)){
+                    name = output.split(":")[1];
+                    continue;
+                }
+                System.out.println(output);
             }
 
         } catch (FetchingThreadException fetchingThreadException) {
@@ -101,6 +121,7 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
                     this.getClass()
             );
         }
+        System.out.println("Disconnected successfully");
     }
 
     private DownloadServer startDownloadServer() {

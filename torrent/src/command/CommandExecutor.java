@@ -50,9 +50,14 @@ public class CommandExecutor {
         var address = command.arguments().get(command.arguments().size() - 1);
         command.arguments().remove(address);
 
-        return storage.register(command.userClient(),
+        String outputString =  storage.register(command.userClient(),
                 command.arguments().stream().map(Path::of).toList(), address);
 
+        if(outputString.contains("successful")){
+            return "name:%s".formatted(command.userClient());
+        }
+
+        return outputString;
     }
 
     private String unregister(Command command) {

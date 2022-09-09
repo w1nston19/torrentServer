@@ -24,17 +24,18 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         PATH_TO_FILE = pathToFile;
     }
 
-    public void download(String input) {
+    public String download(String input) {
         String[] tokens = input.split(COMMAND_DELIMITER);
         if (tokens.length != 4) {
             System.out.println("Wrong usage of command download");
             System.out.println("Usage : download <user> <source> <dest>");
-            return;
+            return "";
         }
         download(
                 tokens[SOURCE_USER_TOKEN],
                 tokens[SOURCE_TOKEN],
                 tokens[DESTINATION_TOKEN]);
+        return tokens[DESTINATION_TOKEN];
     }
 
     public void download(String user, String from, String to) {

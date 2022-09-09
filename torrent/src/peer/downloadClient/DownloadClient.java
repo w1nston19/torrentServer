@@ -15,7 +15,7 @@ public interface DownloadClient {
 
     String COMMAND_DELIMITER = " ";
 
-    void download(String input);
+    String download(String input);
 
     void download(String user, String from, String to);
 
