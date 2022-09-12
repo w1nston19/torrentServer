@@ -16,8 +16,6 @@ public class FetchingThread extends AbstractPeer implements Runnable {
 
     private static final int BUFFER_SIZE = 4096;
 
-    private boolean shouldRun = true;
-
     public FetchingThread(Path pathToLog, SocketChannel channel) {
         log = pathToLog;
         socketChannel = channel;
@@ -26,22 +24,12 @@ public class FetchingThread extends AbstractPeer implements Runnable {
     @Override
     public void run() {
         try {
-            while (shouldRun) {
-
-                ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
-                sendMessage(byteBuffer, socketChannel, SERVER_MESSAGE);
-                String output = getMessage(byteBuffer, socketChannel);
-                Files.write(log, output.getBytes());
-                Thread.sleep(30_000);
-
-            }
+             ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+             sendMessage(byteBuffer, socketChannel, SERVER_MESSAGE);
+             String output = getMessage(byteBuffer, socketChannel);
+             Files.write(log, output.getBytes());
         } catch (Exception e) {
             throw new FetchingThreadException(e.getMessage(), e);
         }
     }
-
-    public void stop() {
-        this.shouldRun = false;
-    }
-
 }

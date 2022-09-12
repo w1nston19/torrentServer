@@ -1,6 +1,8 @@
 package peer;
 
+import exceptions.DestinationAlreadyExistsException;
 import exceptions.FetchingThreadException;
+import exceptions.NonExistentFileException;
 import logger.Loggable;
 import peer.downloadClient.DefaultDownloadClient;
 import peer.downloadClient.DownloadClient;
@@ -15,8 +17,12 @@ import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
+    private static int DEFAULT_FETCH_TIME = 30;
 
     private int counter = 0;
 
@@ -56,6 +62,20 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
         }
     }
 
+    public Path getPATH_TO_FILE() {
+        return PATH_TO_FILE;
+    }
+
+
+    SocketChannel socketCh;
+
+    public void setSocketCh(SocketChannel socketCh) {
+        this.socketCh = socketCh;
+    }
+
+    public SocketChannel getSocketCh() {
+        return socketCh;
+    }
 
     public void start(InetAddress serverAddress, int port) {
         InetSocketAddress server = new InetSocketAddress(serverAddress, port);
@@ -63,14 +83,24 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
         DownloadClient client = new DefaultDownloadClient(PATH_TO_FILE);
 
+        try {
+            socketCh = SocketChannel.open();
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    "the connection to the main ",
+                    this.getClass()
+            );
+            throw new RuntimeException(ioException);
+        }
+
         try (
-                SocketChannel socketChannel = SocketChannel.open();
+                SocketChannel socketChannel = socketCh;
                 Scanner input = new Scanner(System.in)
         ) {
-
             socketChannel.connect(server);
             DownloadServer ds = startDownloadServer();
-            FetchingThread fetchingThread = startFetching(socketChannel);
+            ScheduledExecutorService fetchingExecutor = startFetching(socketChannel);
+
             System.out.println("Successfully connected to the main server");
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
 
@@ -79,15 +109,21 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
                 String inputStr = input.nextLine();
 
                 if (DISCONNECT_STR.equals(inputStr)) {
-                    fetchingThread.stop();
                     socketChannel.close();
                     ds.stop();
+                    fetchingExecutor.shutdown();
                     System.out.println("Disconnecting...");
                     break;
                 }
 
                 if (inputStr.startsWith(DOWNLOAD_STR)) {
-                    String path = client.download(inputStr);
+                    String path;
+                    try{
+                        path = client.download(inputStr);
+                    } catch (DestinationAlreadyExistsException | NonExistentFileException e) {
+                        System.out.println(e.getMessage());
+                        continue;
+                    }
 
                     if(name == null){
                         System.out.println("You haven't specified your username.");
@@ -115,26 +151,28 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
             handleException(fetchingThreadException,
                     "fetching data from the server",
                     FetchingThread.class);
+            throw new RuntimeException(fetchingThreadException);
         } catch (IOException ioException) {
             handleException(ioException,
                     "the connection to the main ",
                     this.getClass()
             );
+            throw new RuntimeException(ioException);
         }
-        System.out.println("Disconnected successfully");
+        System.out.println("Disconnected successfully");;
     }
 
     private DownloadServer startDownloadServer() {
-        DownloadServer ds = new DownloadServer(inetSocketAddress);
-        Thread serverThread = new Thread(ds);
-        serverThread.start();
+        var ds = new DownloadServer(inetSocketAddress);
+        Thread thread = new Thread(ds);
+        thread.start();
         return ds;
     }
 
-    private FetchingThread startFetching(SocketChannel socketChannel) {
-        var fetchingThread = new FetchingThread(PATH_TO_FILE, socketChannel);
-        Thread thread = new Thread(fetchingThread);
-        thread.start();
-        return fetchingThread;
+    private ScheduledExecutorService startFetching(SocketChannel socketChannel) {
+        FetchingThread fetchingThread =  new FetchingThread(PATH_TO_FILE, socketChannel);
+        ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
+        es.scheduleAtFixedRate(fetchingThread, 0, DEFAULT_FETCH_TIME, TimeUnit.SECONDS);
+        return es;
     }
 }

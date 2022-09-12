@@ -1,5 +1,8 @@
 package peer.downloadClient;
 
+import exceptions.DestinationAlreadyExistsException;
+import exceptions.NonExistentFileException;
+
 public interface DownloadClient {
 
     String TORRENT_DELIMITER = ":";
@@ -15,8 +18,8 @@ public interface DownloadClient {
 
     String COMMAND_DELIMITER = " ";
 
-    String download(String input);
+    String download(String input) throws DestinationAlreadyExistsException, NonExistentFileException;
 
-    void download(String user, String from, String to);
+    void download(String user, String from, String to) throws NonExistentFileException, DestinationAlreadyExistsException;
 
 }

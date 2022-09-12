@@ -1,5 +1,6 @@
 package peer.downloadClient;
 
+import exceptions.DestinationAlreadyExistsException;
 import exceptions.NonExistentFileException;
 import logger.Loggable;
 import peer.AbstractPeer;
@@ -24,7 +25,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         PATH_TO_FILE = pathToFile;
     }
 
-    public String download(String input) {
+    public String download(String input) throws DestinationAlreadyExistsException, NonExistentFileException {
         String[] tokens = input.split(COMMAND_DELIMITER);
         if (tokens.length != 4) {
             System.out.println("Wrong usage of command download");
@@ -38,7 +39,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         return tokens[DESTINATION_TOKEN];
     }
 
-    public void download(String user, String from, String to) {
+    public void download(String user, String from, String to) throws NonExistentFileException, DestinationAlreadyExistsException {
         Map.Entry<String, String> ipAddress = getTorrent(user, from);
 
         if (ipAddress.getKey().equals(ERROR_MESSAGE)) {
@@ -49,7 +50,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         Path file = Path.of(to);
         if (Files.exists(file)) {
             System.out.println("Destination file already exists");
-            return;
+            throw new DestinationAlreadyExistsException("Provided destination already exists");
         }
 
         try {
@@ -59,6 +60,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
                     "creating a destination file ",
                     this.getClass()
             );
+            throw new RuntimeException(ioException);
         }
 
         //might be magic
@@ -83,14 +85,12 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
                 throw new NonExistentFileException
                         ("the file doesn't exist or the writing was not success");
             }
-            channel.close();
-            System.out.println("I finished");
-
         } catch (Exception e) {
             handleException(e,
                     "downloading the file ",
                     this.getClass()
             );
+            throw new NonExistentFileException(e.getMessage(), e);
         }
     }
 
