@@ -22,7 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
-    private static int DEFAULT_FETCH_TIME = 30;
+    private static final int DEFAULT_FETCH_TIME = 30;
 
     private int counter = 0;
 
@@ -118,21 +118,21 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
                 if (inputStr.startsWith(DOWNLOAD_STR)) {
                     String path;
-                    try{
+                    try {
                         path = client.download(inputStr);
-                    } catch (DestinationAlreadyExistsException | NonExistentFileException e) {
+                    } catch (DestinationAlreadyExistsException | NonExistentFileException | RuntimeException e) {
                         System.out.println(e.getMessage());
                         continue;
                     }
 
-                    if(name == null){
+                    if (name == null) {
                         System.out.println("You haven't specified your username.");
                         System.out.print(NAME_MESSAGE);
                         name = input.nextLine();
                     }
-                    String tmp = REGISTER_FORMAT.formatted(name, path,inetSocketAddress);
+                    String tmp = REGISTER_FORMAT.formatted(name, path, inetSocketAddress);
                     System.out.println(tmp);
-                    sendMessage(buffer,socketChannel, tmp);
+                    sendMessage(buffer, socketChannel, tmp);
                     System.out.println(getMessage(buffer, socketChannel));
                     continue;
                 }
@@ -140,7 +140,7 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
                 inputStr = inputStr + ' ' + inetSocketAddress;
                 sendMessage(buffer, socketChannel, inputStr);
                 String output = getMessage(buffer, socketChannel);
-                if(output.startsWith(NAME_MESSAGE)){
+                if (output.startsWith(NAME_MESSAGE)) {
                     name = output.split(":")[1];
                     continue;
                 }
@@ -159,7 +159,7 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
             );
             throw new RuntimeException(ioException);
         }
-        System.out.println("Disconnected successfully");;
+        System.out.println("Disconnected successfully");
     }
 
     private DownloadServer startDownloadServer() {
@@ -170,7 +170,7 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
     }
 
     private ScheduledExecutorService startFetching(SocketChannel socketChannel) {
-        FetchingThread fetchingThread =  new FetchingThread(PATH_TO_FILE, socketChannel);
+        FetchingThread fetchingThread = new FetchingThread(PATH_TO_FILE, socketChannel);
         ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
         es.scheduleAtFixedRate(fetchingThread, 0, DEFAULT_FETCH_TIME, TimeUnit.SECONDS);
         return es;

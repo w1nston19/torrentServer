@@ -8,7 +8,6 @@ public class ClientManager {
 
         try {
             client.start(InetAddress.getByName("192.168.0.104"), 6584);
-            System.out.println("Disconnected");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

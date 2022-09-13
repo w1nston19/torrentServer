@@ -24,10 +24,10 @@ public class FetchingThread extends AbstractPeer implements Runnable {
     @Override
     public void run() {
         try {
-             ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
-             sendMessage(byteBuffer, socketChannel, SERVER_MESSAGE);
-             String output = getMessage(byteBuffer, socketChannel);
-             Files.write(log, output.getBytes());
+            ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
+            sendMessage(byteBuffer, socketChannel, SERVER_MESSAGE);
+            String output = getMessage(byteBuffer, socketChannel);
+            Files.write(log, output.getBytes());
         } catch (Exception e) {
             throw new FetchingThreadException(e.getMessage(), e);
         }

@@ -9,6 +9,15 @@ import java.util.Map;
 public class Storage {
 
     private static final String EMPTY_STORAGE = "No items currently available";
+
+    public Map<String, List<Path>> getActiveUsers() {
+        return activeUsers;
+    }
+
+    public Map<String, String> getUserAddresses() {
+        return userAddresses;
+    }
+
     private final Map<String, List<Path>> activeUsers;
     private final Map<String, String> userAddresses;
 

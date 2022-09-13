@@ -15,8 +15,24 @@ import java.nio.charset.StandardCharsets;
 
 public class AbstractServer implements Server {
     protected boolean isServerWorking;
-    protected Selector selector;
+    protected Selector selector = null;
     protected ByteBuffer byteBuffer;
+
+    public Selector getSelector() {
+        return selector;
+    }
+
+    public void setSelector(Selector selector) {
+        this.selector = selector;
+    }
+
+    public ByteBuffer getByteBuffer() {
+        return byteBuffer;
+    }
+
+    public void setByteBuffer(ByteBuffer byteBuffer) {
+        this.byteBuffer = byteBuffer;
+    }
 
     @Override
     public void accept(Selector selector, SelectionKey selectionKey) throws IOException {
@@ -72,7 +88,9 @@ public class AbstractServer implements Server {
 
     @Override
     public void establish(ServerSocketChannel serverSocketChannel, InetAddress address, int port) throws IOException {
-        this.selector = Selector.open();
+        if (this.selector == null) {
+            this.selector = Selector.open();
+        }
 
         serverSocketChannel.bind(new InetSocketAddress(address, port));
         serverSocketChannel.configureBlocking(false);

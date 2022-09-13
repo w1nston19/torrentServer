@@ -6,8 +6,10 @@ import exceptions.UndetectableLocalIPException;
 import logger.Loggable;
 
 import java.io.IOException;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Objects;
 
 public class
 MainServer extends AbstractServer implements Server, Loggable {
@@ -15,6 +17,14 @@ MainServer extends AbstractServer implements Server, Loggable {
 
     static {
         executor = new CommandExecutor();
+    }
+
+    public MainServer() {
+        //default;
+    }
+
+    public MainServer(Selector selector) {
+        this.selector = selector;
     }
 
     public void start() {
@@ -26,6 +36,7 @@ MainServer extends AbstractServer implements Server, Loggable {
 
             while (isServerWorking) {
                 int readyChannels = selector.select();
+
                 if (readyChannels == 0) {
                     continue;
                 }
@@ -41,9 +52,10 @@ MainServer extends AbstractServer implements Server, Loggable {
                         String input = getClientInput(socketChannel);
                         System.out.println(input + "... from ... " + socketChannel.getRemoteAddress().toString());
 
-                        if (input == null) {
+                        if (input == null || Objects.equals(input, "null")) {
                             String ip = socketChannel.getRemoteAddress().toString();
                             //ToDo :: Fix
+                            System.out.printf("should remove %s%n", ip);
                             executor.remove(ip);
                             continue;
                         }

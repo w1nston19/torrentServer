@@ -14,6 +14,7 @@ public interface Peer {
     String DOWNLOAD_STR = "download";
 
     String REGISTER_FORMAT = "register %s %s %s";
+
     void sendMessage(ByteBuffer buffer, SocketChannel socketChannel, String message) throws IOException;
 
 

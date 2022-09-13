@@ -30,7 +30,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         if (tokens.length != 4) {
             System.out.println("Wrong usage of command download");
             System.out.println("Usage : download <user> <source> <dest>");
-            return "";
+            throw new RuntimeException("Wrong usage of command download.");
         }
         download(
                 tokens[SOURCE_USER_TOKEN],
@@ -43,8 +43,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         Map.Entry<String, String> ipAddress = getTorrent(user, from);
 
         if (ipAddress.getKey().equals(ERROR_MESSAGE)) {
-            System.out.println(ipAddress.getValue());
-            return;
+            throw new NonExistentFileException(ipAddress.getValue());
         }
 
         Path file = Path.of(to);

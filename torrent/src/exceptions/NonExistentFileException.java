@@ -1,9 +1,6 @@
 package exceptions;
 
-public class NonExistentFileException extends RuntimeException {
-    public NonExistentFileException() {
-    }
-
+public class NonExistentFileException extends Exception {
     public NonExistentFileException(String message) {
         super(message);
     }

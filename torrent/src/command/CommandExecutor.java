@@ -10,12 +10,16 @@ public class CommandExecutor {
 
     private final static String FETCH_COMMAND = "fetch";
 
+
     private final Storage storage;
 
     public CommandExecutor() {
         this.storage = new Storage();
     }
 
+    public Storage getStorage() {
+        return storage;
+    }
 
     public String execute(Command command) {
         return switch (command.command()) {
@@ -50,10 +54,10 @@ public class CommandExecutor {
         var address = command.arguments().get(command.arguments().size() - 1);
         command.arguments().remove(address);
 
-        String outputString =  storage.register(command.userClient(),
+        String outputString = storage.register(command.userClient(),
                 command.arguments().stream().map(Path::of).toList(), address);
 
-        if(outputString.contains("successful")){
+        if (outputString.contains("successful")) {
             return "name:%s".formatted(command.userClient());
         }
 
@@ -61,6 +65,8 @@ public class CommandExecutor {
     }
 
     private String unregister(Command command) {
+
+        command.arguments().removeIf(it -> it.equals("") || it.equals(" "));
 
         if (command.arguments().size() == 0) {
             return "You need to specify files to unregister and username\n";

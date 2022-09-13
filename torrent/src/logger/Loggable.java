@@ -10,14 +10,14 @@ public interface Loggable {
 
 
     default void handleException(Exception e, String message, Class<?> clazz) {
-        System.out.println(ERROR.formatted(message,
-                logger.getCurrentFilePath().toString()));
+        System.out.printf((ERROR) + "%n", message,
+                logger.getCurrentFilePath().toString());
         log(clazz, e.getMessage());
     }
 
     default void handleException(RuntimeException e, String message, Class<?> clazz) {
-        System.out.println(ERROR.formatted(message,
-                logger.getCurrentFilePath().toString()));
+        System.out.printf((ERROR) + "%n", message,
+                logger.getCurrentFilePath().toString());
         log(clazz, e.getMessage());
     }
 
