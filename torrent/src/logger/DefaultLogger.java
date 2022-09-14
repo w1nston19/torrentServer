@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 
 public class DefaultLogger implements Logger {
-    private final String LOG_FORMAT = "logs-%d.txt";
+    private static final String LOG_FORMAT = "logs-%d.txt";
     private static int logID = -1;
 
     LoggerOptions options;
@@ -15,7 +15,6 @@ public class DefaultLogger implements Logger {
     Path currentFile;
 
     BufferedWriter writer;
-
 
     public DefaultLogger(LoggerOptions options) {
         this.options = options;

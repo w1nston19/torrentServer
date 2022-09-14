@@ -22,18 +22,6 @@ public class AbstractServer implements Server {
         return selector;
     }
 
-    public void setSelector(Selector selector) {
-        this.selector = selector;
-    }
-
-    public ByteBuffer getByteBuffer() {
-        return byteBuffer;
-    }
-
-    public void setByteBuffer(ByteBuffer byteBuffer) {
-        this.byteBuffer = byteBuffer;
-    }
-
     @Override
     public void accept(Selector selector, SelectionKey selectionKey) throws IOException {
         ServerSocketChannel socketChannel = (ServerSocketChannel) selectionKey.channel();

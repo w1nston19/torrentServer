@@ -19,10 +19,10 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultDownloadClient extends AbstractPeer implements DownloadClient, Loggable {
-    private final Path PATH_TO_FILE;
+    private final Path pathToFile;
 
     public DefaultDownloadClient(Path pathToFile) {
-        PATH_TO_FILE = pathToFile;
+        this.pathToFile = pathToFile;
     }
 
     public String download(String input) throws DestinationAlreadyExistsException, NonExistentFileException {
@@ -39,7 +39,8 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         return tokens[DESTINATION_TOKEN];
     }
 
-    public void download(String user, String from, String to) throws NonExistentFileException, DestinationAlreadyExistsException {
+    public void download(String user, String from, String to) throws NonExistentFileException,
+            DestinationAlreadyExistsException {
         Map.Entry<String, String> ipAddress = getTorrent(user, from);
 
         if (ipAddress.getKey().equals(ERROR_MESSAGE)) {
@@ -71,8 +72,8 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
             sendMessage(buffer, channel, from);
             if (!channel.isConnected()) {
-                throw new NonExistentFileException
-                        ("the path provided is not valid/the file on this path doesn't exist");
+                throw new NonExistentFileException("the path provided is not valid/the " +
+                        "file on this path doesn't exist");
             }
             try (var os = new FileOutputStream(to)) {
                 FileChannel fileChannel = os.getChannel();
@@ -81,8 +82,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
 
             if (Files.size(file) == 0) {
                 Files.delete(file);
-                throw new NonExistentFileException
-                        ("the file doesn't exist or the writing was not success");
+                throw new NonExistentFileException("the file doesn't exist or the writing was not success");
             }
         } catch (Exception e) {
             handleException(e,
@@ -119,7 +119,7 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         List<String> torrents = new ArrayList<>();
         String torrentLine;
 
-        try (BufferedReader bufferedReader = Files.newBufferedReader(PATH_TO_FILE)) {
+        try (BufferedReader bufferedReader = Files.newBufferedReader(pathToFile)) {
             while ((torrentLine = bufferedReader.readLine()) != null) {
                 String[] tokens = torrentLine.split(TORRENT_DELIMITER);
                 if (user.equals(tokens[USER_TOKEN])) {

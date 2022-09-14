@@ -7,7 +7,6 @@ public class CommandExecutor {
     private final static String LIST_COMMAND = "list-files";
     private final static String REGISTER_COMMAND = "register";
     private final static String UNREGISTER_COMMAND = "unregister";
-
     private final static String FETCH_COMMAND = "fetch";
 
 
@@ -40,7 +39,7 @@ public class CommandExecutor {
     }
 
     private String fetch() {
-        return storage.server_info();
+        return storage.serverInfo();
     }
 
     private String register(Command command) {

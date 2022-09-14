@@ -39,7 +39,7 @@ public class Storage {
         return builder.isEmpty() ? EMPTY_STORAGE : builder.toString();
     }
 
-    public String server_info() {
+    public String serverInfo() {
         StringBuilder builder = new StringBuilder();
 
         for (String userClient : activeUsers.keySet()) {
@@ -69,7 +69,7 @@ public class Storage {
 
         activeUsers.get(address).addAll(paths);
 
-        return "Registration successful/n";
+        return "Registration successful";
     }
 
 

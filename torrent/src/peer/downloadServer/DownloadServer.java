@@ -90,11 +90,6 @@ public class DownloadServer extends AbstractServer implements Server, Runnable, 
 
         } catch (IOException ioException) {
             throw new RuntimeException(ioException);
-            /*
-            handleException(ioException,
-                    "extracting the file",
-                    this.getClass()
-            );*/
         }
 
         channel.close();

@@ -30,9 +30,9 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
     private String name = null;
 
-    private Path PATH_TO_FILE;
+    private Path pathToFile;
 
-    private final String NAME_MESSAGE = "name:";
+    private static final String NAME_MESSAGE = "name:";
 
     public DefaultPeer() {
         InetAddress ip;
@@ -55,15 +55,15 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
             while (Files.exists(Path.of(PATH_TO_FILE_FORMAT.formatted(counter)))) {
                 counter++;
             }
-            PATH_TO_FILE = Path.of(PATH_TO_FILE_FORMAT.formatted(counter));
-            Files.createFile(PATH_TO_FILE);
+            pathToFile = Path.of(PATH_TO_FILE_FORMAT.formatted(counter));
+            Files.createFile(pathToFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Path getPATH_TO_FILE() {
-        return PATH_TO_FILE;
+    public Path getPathToFile() {
+        return pathToFile;
     }
 
 
@@ -73,15 +73,11 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
         this.socketCh = socketCh;
     }
 
-    public SocketChannel getSocketCh() {
-        return socketCh;
-    }
-
     public void start(InetAddress serverAddress, int port) {
         InetSocketAddress server = new InetSocketAddress(serverAddress, port);
         generateFile();
 
-        DownloadClient client = new DefaultDownloadClient(PATH_TO_FILE);
+        DownloadClient client = new DefaultDownloadClient(pathToFile);
 
         try {
             socketCh = SocketChannel.open();
@@ -117,23 +113,11 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
                 }
 
                 if (inputStr.startsWith(DOWNLOAD_STR)) {
-                    String path;
                     try {
-                        path = client.download(inputStr);
-                    } catch (DestinationAlreadyExistsException | NonExistentFileException | RuntimeException e) {
-                        System.out.println(e.getMessage());
+                        download(inputStr, client, input, buffer, socketChannel);
+                    } catch (RuntimeException runtimeException) {
                         continue;
                     }
-
-                    if (name == null) {
-                        System.out.println("You haven't specified your username.");
-                        System.out.print(NAME_MESSAGE);
-                        name = input.nextLine();
-                    }
-                    String tmp = REGISTER_FORMAT.formatted(name, path, inetSocketAddress);
-                    System.out.println(tmp);
-                    sendMessage(buffer, socketChannel, tmp);
-                    System.out.println(getMessage(buffer, socketChannel));
                     continue;
                 }
 
@@ -170,9 +154,29 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
     }
 
     private ScheduledExecutorService startFetching(SocketChannel socketChannel) {
-        FetchingThread fetchingThread = new FetchingThread(PATH_TO_FILE, socketChannel);
+        FetchingThread fetchingThread = new FetchingThread(pathToFile, socketChannel);
         ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
         es.scheduleAtFixedRate(fetchingThread, 0, DEFAULT_FETCH_TIME, TimeUnit.SECONDS);
         return es;
+    }
+
+    private void download(String inputStr, DownloadClient client, Scanner input,
+                          ByteBuffer buffer, SocketChannel socketChannel) throws IOException {
+        String path;
+        try {
+            path = client.download(inputStr);
+        } catch (DestinationAlreadyExistsException | NonExistentFileException | RuntimeException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        if (this.name == null) {
+            System.out.println("You haven't specified your username.");
+            System.out.print(NAME_MESSAGE);
+            name = input.nextLine();
+        }
+        String tmp = REGISTER_FORMAT.formatted(name, path, inetSocketAddress);
+        System.out.println(tmp);
+        sendMessage(buffer, socketChannel, tmp);
+        System.out.println(getMessage(buffer, socketChannel));
     }
 }

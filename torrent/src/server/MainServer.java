@@ -9,34 +9,36 @@ import java.io.IOException;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-public class
-MainServer extends AbstractServer implements Server, Loggable {
-    private static final CommandExecutor executor;
+public class MainServer extends AbstractServer implements Server, Loggable {
+    private static CommandExecutor executor;
 
     static {
         executor = new CommandExecutor();
     }
 
+    private static Map<String, String> addressMapping;
+
     public MainServer() {
+        addressMapping = new HashMap<>();
         //default;
     }
 
     public MainServer(Selector selector) {
         this.selector = selector;
+        addressMapping = new HashMap<>();
     }
 
     public void start() {
-
         try (ServerSocketChannel serverSocketChannel = ServerSocketChannel.open()) {
-
 
             establish(serverSocketChannel, getIP(), DEFAULT_PORT);
 
             while (isServerWorking) {
                 int readyChannels = selector.select();
-
                 if (readyChannels == 0) {
                     continue;
                 }
@@ -54,10 +56,15 @@ MainServer extends AbstractServer implements Server, Loggable {
 
                         if (input == null || Objects.equals(input, "null")) {
                             String ip = socketChannel.getRemoteAddress().toString();
-                            //ToDo :: Fix
-                            System.out.printf("should remove %s%n", ip);
-                            executor.remove(ip);
+                            executor.remove(addressMapping.get(ip));
+                            addressMapping.remove(ip);
                             continue;
+                        }
+
+                        String[] tmp = input.split(" ");
+                        String actualIP = tmp[tmp.length - 1];
+                        if (!actualIP.equals("fetch") && !actualIP.equals("null")) {
+                            addressMapping.put(socketChannel.getRemoteAddress().toString(), actualIP);
                         }
 
                         String output = executor.execute(Command.of(input));

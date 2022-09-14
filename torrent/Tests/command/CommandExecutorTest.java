@@ -26,6 +26,11 @@ class CommandExecutorTest {
 
     private CommandExecutor testedExecutor = new CommandExecutor();
 
+    @BeforeEach
+    void empty() {
+        testedExecutor = new CommandExecutor();
+    }
+
     @Test
     void testWithUnknownCommand() {
         String command = "dummyCommand";
@@ -37,15 +42,6 @@ class CommandExecutorTest {
                         "is unknown");
     }
 
-    @BeforeEach
-    void empty() {
-        testedExecutor = new CommandExecutor();
-    }
-
-    void addInfo() {
-        testedExecutor.execute(
-                Command.of(REGISTER_COMMAND + ARGUMENTS));
-    }
 
     @Test
     void testWithEmptyStorage() {
@@ -76,6 +72,11 @@ class CommandExecutorTest {
         assertEquals(message, testedExecutor.execute(
                 Command.of(REGISTER_COMMAND + ARGUMENTS)
         ), "Successful registration should return <name:...> message");
+    }
+
+    void addInfo() {
+        testedExecutor.execute(
+                Command.of(REGISTER_COMMAND + ARGUMENTS));
     }
 
     @Test
