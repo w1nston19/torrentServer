@@ -6,8 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
-public class DefaultLogger implements Logger {
+public class
+DefaultLogger implements Logger {
     private static final String LOG_FORMAT = "logs-%d.txt";
+
     private static int logID = -1;
 
     LoggerOptions options;
@@ -15,15 +17,15 @@ public class DefaultLogger implements Logger {
     Path currentFile;
 
     BufferedWriter writer;
+    long bytesWritten = 0;
+
 
     public DefaultLogger(LoggerOptions options) {
         this.options = options;
-        try {
-            makePath();
-            openFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    }
+    public DefaultLogger(LoggerOptions options, BufferedWriter writer) {
+        this.writer = writer;
+        this.options = options;
     }
 
     public void makePath() {
@@ -48,15 +50,14 @@ public class DefaultLogger implements Logger {
         Log toLog = new Log(timestamp, clazz.getPackageName() + "/" + clazz.getName(), message);
 
         try {
-            if (!canWriteToFile()) {
+            writer.write(toLog.toString());
+            writer.flush();
+            bytesWritten += toLog.toString().getBytes().length;
+            if (bytesWritten > options.getMaxFileSizeBytes()) {
                 closeFile();
                 makePath();
                 openFile();
             }
-
-            writer.write(toLog.toString());
-            writer.flush();
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

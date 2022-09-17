@@ -9,6 +9,8 @@ import peer.downloadClient.DownloadClient;
 import peer.downloadServer.DownloadServer;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -114,7 +116,9 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
 
                 if (inputStr.startsWith(DOWNLOAD_STR)) {
                     try {
-                        download(inputStr, client, input, buffer, socketChannel);
+                        String path = download(inputStr, client);
+                        getName(input);
+                        registerAfterDownload(path, buffer, socketChannel);
                     } catch (RuntimeException runtimeException) {
                         continue;
                     }
@@ -160,8 +164,7 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
         return es;
     }
 
-    private void download(String inputStr, DownloadClient client, Scanner input,
-                          ByteBuffer buffer, SocketChannel socketChannel) throws IOException {
+    private String download(String inputStr, DownloadClient client) throws IOException {
         String path;
         try {
             path = client.download(inputStr);
@@ -169,14 +172,22 @@ public class DefaultPeer extends AbstractPeer implements Peer, Loggable {
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
+
+        return path;
+    }
+
+    private void getName( Scanner input){
         if (this.name == null) {
             System.out.println("You haven't specified your username.");
             System.out.print(NAME_MESSAGE);
             name = input.nextLine();
         }
+    }
+    private void registerAfterDownload(String path, ByteBuffer buffer, SocketChannel socketChannel) throws IOException {
         String tmp = REGISTER_FORMAT.formatted(name, path, inetSocketAddress);
         System.out.println(tmp);
         sendMessage(buffer, socketChannel, tmp);
         System.out.println(getMessage(buffer, socketChannel));
     }
+
 }

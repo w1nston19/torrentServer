@@ -7,7 +7,7 @@ public class ClientManager {
         DefaultPeer client = new DefaultPeer();
 
         try {
-            client.start(InetAddress.getByName("192.168.0.104"), 6584);
+            client.start(InetAddress.getByName("192.168.0.127"), 6584);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
