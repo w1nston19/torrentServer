@@ -2,12 +2,15 @@ package peer.downloadClient;
 
 import exceptions.DestinationAlreadyExistsException;
 import exceptions.NonExistentFileException;
+import exceptions.UserDoesNotOwnThisTorrentException;
+import exceptions.UserHasNotRegisteredTorrentsException;
 import logger.Loggable;
 import peer.AbstractPeer;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -17,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 
 public class DefaultDownloadClient extends AbstractPeer implements DownloadClient, Loggable {
     private final Path pathToFile;
@@ -32,43 +36,28 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
             System.out.println("Usage : download <user> <source> <dest>");
             throw new RuntimeException("Wrong usage of command download.");
         }
-        download(
+        getFromOtherPeer(
                 tokens[SOURCE_USER_TOKEN],
                 tokens[SOURCE_TOKEN],
                 tokens[DESTINATION_TOKEN]);
         return tokens[DESTINATION_TOKEN];
     }
 
-    public void download(String user, String from, String to) throws NonExistentFileException,
+    public void getFromOtherPeer(String user, String from, String to) throws NonExistentFileException,
             DestinationAlreadyExistsException {
-        Map.Entry<String, String> ipAddress = getTorrent(user, from);
-
-        if (ipAddress.getKey().equals(ERROR_MESSAGE)) {
-            throw new NonExistentFileException(ipAddress.getValue());
+        InetSocketAddress ipAddress;
+        try{
+            ipAddress = getTorrent(user, from);
+        }catch (UserDoesNotOwnThisTorrentException | UserHasNotRegisteredTorrentsException exception){
+            throw new NonExistentFileException(exception.getMessage());
         }
+
 
         Path file = Path.of(to);
-        if (Files.exists(file)) {
-            System.out.println("Destination file already exists");
-            throw new DestinationAlreadyExistsException("Provided destination already exists");
-        }
-
-        try {
-            Files.createFile(file);
-        } catch (IOException ioException) {
-            handleException(ioException,
-                    "creating a destination file ",
-                    this.getClass()
-            );
-            throw new RuntimeException(ioException);
-        }
-
-        //might be magic
-        String ip = ipAddress.getKey().substring(1);
-        int port = Integer.parseInt(ipAddress.getValue());
+        createDest(file);
 
         try (SocketChannel channel = SocketChannel.open()) {
-            channel.connect(new InetSocketAddress(ip, port));
+            channel.connect(ipAddress);
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
             sendMessage(buffer, channel, from);
             if (!channel.isConnected()) {
@@ -93,26 +82,43 @@ public class DefaultDownloadClient extends AbstractPeer implements DownloadClien
         }
     }
 
-    private Map.Entry<String, String> getTorrent(String user, String from) {
+
+    private void createDest(Path file) throws DestinationAlreadyExistsException {
+        if (Files.exists(file)) {
+            System.out.println("Destination file already exists");
+            throw new DestinationAlreadyExistsException("Provided destination already exists");
+        }
+
+        try {
+            Files.createFile(file);
+        } catch (IOException ioException) {
+            handleException(ioException,
+                    "creating a destination file ",
+                    this.getClass()
+            );
+            throw new RuntimeException(ioException);
+        }
+    }
+
+    private InetSocketAddress getTorrent(String user, String from) throws UserHasNotRegisteredTorrentsException,
+            UserDoesNotOwnThisTorrentException {
         List<String> allFromUser = getTorrentsFromUser(user);
         if (allFromUser.isEmpty()) {
-            return Map.entry(ERROR_MESSAGE, "The user hasn't registered any torrents \n");
+            throw new UserHasNotRegisteredTorrentsException("The user does not have any torrents linked with him");
         }
+
         List<String[]> allTokens = allFromUser.stream().map(s -> s.split(TORRENT_DELIMITER)).toList();
-
-
         List<String[]> neededTokens = allTokens.stream()
                 .filter(tokens -> tokens[FILE_TOKEN].equals(from))
                 .toList();
 
         if (neededTokens.isEmpty()) {
-            return Map.entry(ERROR_MESSAGE, "There is no torrent with path<%s> connected to user <%s>%n"
-                    .formatted(from, user));
-
+            throw new UserDoesNotOwnThisTorrentException("There is no torrent with path<%s> connected to user <%s>%n");
         }
 
         String[] torrent = neededTokens.get(0);
-        return Map.entry(torrent[IP_TOKEN], torrent[PORT_TOKEN]);
+        String ip = torrent[IP_TOKEN].substring(1);
+        return new InetSocketAddress(ip, Integer.parseInt(torrent[PORT_TOKEN]));
     }
 
     private List<String> getTorrentsFromUser(String user) {

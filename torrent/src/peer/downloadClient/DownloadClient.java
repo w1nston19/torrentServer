@@ -20,7 +20,7 @@ public interface DownloadClient {
 
     String download(String input) throws DestinationAlreadyExistsException, NonExistentFileException;
 
-    void download(String user, String from, String to)
+    void getFromOtherPeer(String user, String from, String to)
             throws NonExistentFileException, DestinationAlreadyExistsException;
 
 }
